@@ -1,0 +1,7 @@
+/dice_models
+test*
+check_env.py
+
+.idea
+__pycache__/
+/venv
