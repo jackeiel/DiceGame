@@ -1,4 +1,5 @@
 dice_models/checkpoint*
+training_games/*
 test*
 check_env.py
 
