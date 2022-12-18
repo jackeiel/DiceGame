@@ -13,9 +13,6 @@ import numpy as np
 
 def dg_training(config):
     ray.init()
-    # config = ppo.DEFAULT_CONFIG.copy()
-    # config["num_gpus"] = 0
-    # config["num_workers"] = 1
 
     algo = config.build()
 
@@ -24,29 +21,32 @@ def dg_training(config):
         print(f'######## TRAINING ITERATION {i} ########')
         # Perform one iteration of training the policy with PPO
         result = algo.train()
-        print(pretty_print(result))
+        # print(pretty_print(result))
 
         if i % 100 == 0 or i in [2, 3, 10]:
             print("######## SUPER SPECIAL RUN ########")
             checkpoint = algo.save('dice_models')
             print("checkpoint saved at", checkpoint)
             config = {
-                'n_players': 5,
+                'n_players': 3,
                 'starting_dice_per_player': 3
             }
             game = DiceGame(config)
             obs = game.reset()
-            while True:
-                print('active turn p', game.active_turn)
-                action = algo.compute_single_action(obs[f'player_{game.active_turn}'], policy_id='learning_policy9')
-                print('action:', game.convert_int_to_bid(action))
-                action_dict = {f'player_{game.active_turn}': action}
-                obs, reward, done, info = game.step(action_dict)
-                print('NEW OBS: ')
-                pprint(obs[f'player_{game.active_turn}']['observations'])
-                print('REWARD: ', reward)
-                if done['__all__']:
-                    break
+            with open(f'training_games/training_game_{i}.txt', 'w') as file:
+                while True:
+                    file.write('active turn p')
+                    file.write(game.active_turn)
+                    action = algo.compute_single_action(obs[f'player_{game.active_turn}'], policy_id='learning_policy9')
+                    file.write('\naction:')
+                    file.write(game.convert_int_to_bid(action))
+                    action_dict = {f'player_{game.active_turn}': action}
+                    obs, reward, done, info = game.step(action_dict)
+                    file.write('NEW OBS: ')
+                    file.write(obs[f'player_{game.active_turn}']['observations'])
+                    file.write('REWARD: ', reward)
+                    if done['__all__']:
+                        break
 
 
 if __name__ == "__main__":
