@@ -16,7 +16,7 @@ class DiceGame(MultiAgentEnv):
         self.starting_dice_per_player = config.get('starting_dice_per_player', 2)
         assert self.starting_dice_per_player <= self.max_starting_dice, 'Max number of starting dice is 5'
         self.active_turn = 1
-        self.ones_wild = True
+        self.ones_wild = 1
         self.prev_bid = 0
         self.n_dice_left = self.n_players * self.starting_dice_per_player
         self.player_obs = {}
@@ -120,7 +120,7 @@ class DiceGame(MultiAgentEnv):
                 self.player_obs[p]['n_players_left'] = players_left
                 self.player_obs[p]['n_dice_left'] = self.n_dice_left
                 self.player_obs[p]['roll'] = self.roll(self.player_obs[p]['n_dice'])
-                self.player_obs[p]['ones_wild'] = self.ones_wild
+                self.player_obs[p]['ones_wild'] = 1  # after a call ones always reset to wild
         else:  # move turn along circle
             _, value = self.convert_int_to_bid(action)
             if value == 1:

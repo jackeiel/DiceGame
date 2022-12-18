@@ -34,17 +34,21 @@ def dg_training(config):
             game = DiceGame(config)
             obs = game.reset()
             with open(f'training_games/training_game_{i}.txt', 'w') as file:
+                file.write(f'### START GAME {i}###')
                 while True:
-                    file.write('active turn p')
-                    file.write(game.active_turn)
+                    file.write('\nObservations:\n')
+                    file.write(pretty_print(game.player_obs))
+                    file.write('\nactive turn p')
+                    file.write(str(game.active_turn))
                     action = algo.compute_single_action(obs[f'player_{game.active_turn}'], policy_id='learning_policy9')
-                    file.write('\naction:')
-                    file.write(game.convert_int_to_bid(action))
+                    file.write('\naction: ')
+                    file.write(str(game.convert_int_to_bid(action)))
                     action_dict = {f'player_{game.active_turn}': action}
                     obs, reward, done, info = game.step(action_dict)
-                    file.write('NEW OBS: ')
-                    file.write(obs[f'player_{game.active_turn}']['observations'])
-                    file.write('REWARD: ', reward)
+                    # file.write('NEW OBS: ')
+                    # file.write(str(obs[f'player_{game.active_turn}']['observations']))
+                    file.write('\nREWARD: ')
+                    file.write(str(reward))
                     if done['__all__']:
                         break
 
