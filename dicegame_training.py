@@ -1,4 +1,4 @@
-from pprint import pprint
+import os
 
 import ray
 import ray.rllib.algorithms.ppo as ppo
@@ -11,7 +11,7 @@ from dicegame.dicegame_model import DiceGameModel
 import numpy as np
 
 
-def dg_training(config):
+def dg_training(config, path=''):
     ray.init()
 
     algo = config.build()
@@ -21,19 +21,22 @@ def dg_training(config):
         print(f'######## TRAINING ITERATION {i} ########')
         # Perform one iteration of training the policy with PPO
         result = algo.train()
-        # print(pretty_print(result))
 
         if i % 100 == 0 or i in [2, 3, 10]:
-            print("######## SUPER SPECIAL RUN ########")
-            checkpoint = algo.save('dice_models')
-            print("checkpoint saved at", checkpoint)
+            print("######## SAVING MODEL CHECKPOINT AND RUNNING A TRAINING GAME ########")
+            if not os.path.exists(os.path.join(path, 'dice_models')):
+                os.mkdir(os.path.join(path, 'dice_models'))
+            checkpoint = algo.save(os.path.join(path, 'dice_models'))
             config = {
                 'n_players': 3,
                 'starting_dice_per_player': 3
             }
             game = DiceGame(config)
             obs = game.reset()
-            with open(f'training_games/training_game_{i}.txt', 'w') as file:
+            if not os.path.exists(os.path.join(path, 'training_games')):
+                os.mkdir(os.path.join(path, 'training_games'))
+            f_name = os.path.join(path, 'training_games', f'training_game_{i}.txt')
+            with open(f_name, 'w') as file:
                 file.write(f'### START GAME {i}###')
                 while True:
                     file.write('\nObservations:\n')
@@ -45,8 +48,6 @@ def dg_training(config):
                     file.write(str(game.convert_int_to_bid(action)))
                     action_dict = {f'player_{game.active_turn}': action}
                     obs, reward, done, info = game.step(action_dict)
-                    # file.write('NEW OBS: ')
-                    # file.write(str(obs[f'player_{game.active_turn}']['observations']))
                     file.write('\nREWARD: ')
                     file.write(str(reward))
                     if done['__all__']:
