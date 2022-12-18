@@ -4,12 +4,12 @@ import ray
 import ray.rllib.algorithms.ppo as ppo
 from ray.tune.logger import pretty_print
 from ray.rllib.policy.policy import PolicySpec
-from ray.rllib.examples.policy.random_policy import RandomPolicy
 
-from dicegame import DiceGame
-from dicegame_model import DiceGameModel
+from dicegame.dicegame import DiceGame
+from dicegame.dicegame_model import DiceGameModel
 
 import numpy as np
+
 
 def dg_training(config):
     ray.init()

@@ -1,4 +1,4 @@
-/dice_models
+dice_models/checkpoint*
 test*
 check_env.py
 
