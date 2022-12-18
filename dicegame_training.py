@@ -11,42 +11,11 @@ from dicegame_model import DiceGameModel
 
 import numpy as np
 
-if __name__ == "__main__":
+def dg_training(config):
     ray.init()
-    config = ppo.DEFAULT_CONFIG.copy()
-    config["num_gpus"] = 0
-    config["num_workers"] = 1
-
-    env_config = {
-        'randomize': True
-    }
-
-    config = (
-            ppo.PPOConfig()
-            .environment(
-                DiceGame,
-                env_config=env_config,
-            )
-            .multi_agent(
-                policies={
-                    "learning_policy9": PolicySpec(
-                        config={'gamma': 0.9}
-                    ),
-                    "learning_policy5": PolicySpec(
-                        config={'gamma': 0.5}
-                    )
-                },
-                policy_mapping_fn=lambda agent_id, episode, worker, **kwargs:
-                np.random.choice(['learning_policy5', 'learning_policy9']),
-                policies_to_train=['learning_policy5', 'learning_policy9']
-            )
-            .training(
-                model={
-                    "custom_model": DiceGameModel
-                },
-            )
-            .framework('tf2')
-        )
+    # config = ppo.DEFAULT_CONFIG.copy()
+    # config["num_gpus"] = 0
+    # config["num_workers"] = 1
 
     algo = config.build()
 
@@ -80,15 +49,41 @@ if __name__ == "__main__":
                     break
 
 
-# Also, in case you have trained a model outside of ray/RLlib and have created
-# an h5-file with weight values in it, e.g.
-# my_keras_model_trained_outside_rllib.save_weights("model.h5")
-# (see: https://keras.io/models/about-keras-models/)
+if __name__ == "__main__":
+    env_config = {
+        'randomize': True
+    }
+    config = (
+        ppo.PPOConfig()
+        .resources(
+            num_gpus=0
+        )
+        .rollouts(
+            num_rollout_workers=2
+        )
+        .environment(
+            DiceGame,
+            env_config=env_config,
+        )
+        .multi_agent(
+            policies={
+                "learning_policy9": PolicySpec(
+                    config={'gamma': 0.9}
+                ),
+                "learning_policy5": PolicySpec(
+                    config={'gamma': 0.5}
+                )
+            },
+            policy_mapping_fn=lambda agent_id, episode, worker, **kwargs:
+            np.random.choice(['learning_policy5', 'learning_policy9']),
+            policies_to_train=['learning_policy5', 'learning_policy9']
+        )
+        .training(
+            model={
+                "custom_model": DiceGameModel
+            },
+        )
+        .framework('tf2')
+    )
 
-# ... you can load the h5-weights into your Algorithm's Policy's ModelV2
-# (tf or torch) by doing:
-# algo.import_model("my_weights.h5")
-# NOTE: In order for this to work, your (custom) model needs to implement
-# the `import_from_h5` method.
-# See https://github.com/ray-project/ray/blob/master/rllib/tests/test_model_imports.py
-# for detailed examples for tf- and torch policies/models.
+    dg_training(config=config)
