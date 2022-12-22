@@ -1,5 +1,4 @@
 from gym.spaces import Box, Discrete, Dict
-from gym.wrappers import FlattenObservation
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 import numpy as np
@@ -16,7 +15,7 @@ class DiceGame(MultiAgentEnv):
         self.starting_dice_per_player = config.get('starting_dice_per_player', 2)
         assert self.starting_dice_per_player <= self.max_starting_dice, 'Max number of starting dice is 5'
         self.active_turn = 1
-        self.ones_wild = 1
+        # self.ones_wild = 1
         self.prev_bid = 0
         self.n_dice_left = self.n_players * self.starting_dice_per_player
         self.player_obs = {}
@@ -53,7 +52,7 @@ class DiceGame(MultiAgentEnv):
             self.starting_dice_per_player = np.random.randint(low=1, high=self.max_starting_dice)
         self.prev_bid = 0
         self.active_turn = 1  # always start on player 1 (why not?)
-        self.ones_wild = 1  # True
+        # self.ones_wild = 1  # True
         self.n_dice_left = self.n_players * self.starting_dice_per_player
 
         player_observation = {
@@ -124,7 +123,8 @@ class DiceGame(MultiAgentEnv):
         else:  # move turn along circle
             _, value = self.convert_int_to_bid(action)
             if value == 1:
-                self.ones_wild = 0
+                for p in self.player_obs:
+                    self.player_obs[p]['ones_wild'] = 0
             next_player = self.set_next_player()  # returns a player string
             self.active_turn = int(next_player.split('_')[-1])
 
@@ -144,7 +144,7 @@ class DiceGame(MultiAgentEnv):
 
     def get_action_mask(self, prev_bet):
         action_mask = np.ones(shape=(self.max_players*self.max_starting_dice*6+1), dtype=int)
-        action_mask[self.n_dice_left+1:] = 0
+        action_mask[self.n_dice_left+2:] = 0
         if prev_bet == 0:
             action_mask[0] = 0
         else:
@@ -175,7 +175,7 @@ class DiceGame(MultiAgentEnv):
         n = 0
         for player in self.player_obs:
             p = self.player_obs[player]
-            if self.ones_wild:
+            if p['ones_wild']:
                 sub_n = len(list(filter(lambda i: i in [1, value], p['roll'])))
             else:
                 sub_n = len(list(filter(lambda i: i == value, p['roll'])))
