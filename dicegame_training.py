@@ -22,7 +22,7 @@ def dg_training(config, path=''):
         # Perform one iteration of training the policy with PPO
         result = algo.train()
 
-        if i % 100 == 0 or i in [2, 3, 10]:
+        if i % 10 == 0 or i in [2, 3, 10]:
             print("######## SAVING MODEL CHECKPOINT AND RUNNING A TRAINING GAME ########")
             if not os.path.exists(os.path.join(path, 'dice_models')):
                 os.mkdir(os.path.join(path, 'dice_models'))
